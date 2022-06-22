@@ -74,7 +74,7 @@ function onError(error) {
 
 async function onListening(){
   // app.set('connectedDatabase',false)
-  // graphqlServer()
+  graphqlServer()
   // connectDb()
 }
 
@@ -84,7 +84,7 @@ async function graphqlServer(){
   try{
     await server.start()
     server.applyMiddleware({
-      app:app,path:'/test'
+      app:app,path:'/'
     })
   }
   catch(err){
