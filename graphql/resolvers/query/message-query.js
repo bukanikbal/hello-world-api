@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import * as ase from 'apollo-server-express'
-import Message from '../../../mongodb/models/Message.js'
+import {message} from '../../../mongodb/models/Message.js'
 
 var ObjId = mongoose.Types.ObjectId;
 
@@ -8,7 +8,7 @@ var ObjId = mongoose.Types.ObjectId;
 export default {
   all : async (parent,args,ctx) => {
     if(ctx.app.get('connectedDatabase')){
-      var result = await Message.aggregate([     
+      var result = await message.aggregate([     
         {$match:{
           sender : {
             $in : [
@@ -37,7 +37,7 @@ export default {
   },
   recently: async(parent,args,ctx) => {
     if(ctx.app.get('connectedDatabase')){
-      var result = await Message.aggregate([
+      var result = await message.aggregate([
         {$match: {
           $or: [
             {sender: ObjId(args._id)},

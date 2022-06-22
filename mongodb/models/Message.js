@@ -21,5 +21,10 @@ var Message = new Schema({
   }
 })
 
-export default mongoose.model('Message',Message)
+var message = mongoose.model(
+  'Message',Message
+)
+
+export {message}
+
 

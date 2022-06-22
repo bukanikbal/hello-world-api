@@ -1,5 +1,5 @@
 import * as apollo from 'apollo-server-express'
-import Message from '../../../mongodb/models/Message.js'
+import {message} from '../../../mongodb/models/Message.js'
 
 
 

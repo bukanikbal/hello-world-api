@@ -4,63 +4,46 @@
  * Module dependencies.
  */
 
-import http from 'http'
-import app from '../app.js'
 import mongoose from 'mongoose'
-import server from '../graphql/server.js'
-import Message from '../mongodb/models/Message.js'
-import * as socket from 'socket.io'
+import {app} from '../app.js'
+import {Server} from 'socket.io'
+import {createServer} from 'http'
+import {graphqlServer} from '../graphql/server.js'
+import {message} from '../mongodb/models/Message.js'
 
 
-var port = normalizePort(process.env.PORT);
+mongoose.connection.on(
+  'connected',
+  onConnected
+)
 
-var httpServer = http.createServer(app)
+mongoose.connection.on(
+  'disconnected',
+  onDisconnected
+)
+
+var httpServer = createServer(app)
 
 
-var io = new socket.Server(httpServer,{
+httpServer.on('error',onHttpError)
+httpServer.on('listening',onListen)
+httpServer.listen(process.env.PORT)
+
+
+var socket = new Server(httpServer,{
   cors : {
-    origin: '*'
+    origin : '*'
   }
 })
 
-console.log({
-  port
-})
-
-httpServer.listen(port);
-httpServer.on('error',onError);
-httpServer.on('listening',onListening)
-
-mongoose.connection.on('connected',onConnected)
-mongoose.connection.on('disconnected',onDisconnected)
-
-io.on('connection',onConnection)
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
-}
 
 
-function onError(error) {
+function onHttpError(error) {
   if (error.syscall !== 'listen') {
     throw error;
   }
 
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  var bind = typeof port === 'string'? 'Pipe ' + port: 'Port ' + port;
 
   switch (error.code) {
     case 'EACCES':
@@ -76,19 +59,26 @@ function onError(error) {
   }
 }
 
-async function onListening(){
-  // app.set('connectedDatabase',false)
-  graphqlServer()
-  // connectDb()
+async function onListen(){
+  app.set(
+    'connectedDatabase',
+    false
+  )
+  startGraphqlServer(
+    '/'
+  )
+  connectDb(
+    process.env.URI
+  )
 }
 
 // graphql server function
 
-async function graphqlServer(){
+async function startGraphqlServer(path){
   try{
-    await server.start()
-    server.applyMiddleware({
-      app:app,path:'/'
+    await graphqlServer.start()
+    graphqlServer.applyMiddleware({
+      app:app,path
     })
   }
   catch(err){
@@ -100,16 +90,16 @@ async function graphqlServer(){
 
 // connect db function
 
-async function connectDb(){
+async function connectDb(uri){
   try{
     await  mongoose.connect(
-      process.env.URI
+      uri
     )
   }
   catch({message}){
     app.set('dbsErrorMessage',message);
     setTimeout(() => connectDb(),5000);
-    console.log(`Reconnect,${message}`)
+    console.log(`Reconnect:${message}`)
   } 
 }
 

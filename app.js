@@ -19,4 +19,4 @@ app.use(cookieParser());
 app.use(cors({origin:'*'}))
 
 
-export default app
+export {app}
