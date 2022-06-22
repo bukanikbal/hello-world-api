@@ -23,6 +23,10 @@ var io = new socket.Server(httpServer,{
   }
 })
 
+console.log({
+  port
+})
+
 httpServer.listen(port);
 httpServer.on('error',onError);
 httpServer.on('listening',onListening)
