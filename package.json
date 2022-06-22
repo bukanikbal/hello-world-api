@@ -6,6 +6,10 @@
     "start": "node ./bin/www",
     "dev": "nodemon -r dotenv/config.js ./bin/www.js"
   },
+  "engines": {
+    "node": "15.5.1",
+    "npm": "7.3.0"
+  },
   "dependencies": {
     "apollo-server": "^3.7.0",
     "apollo-server-express": "^3.7.0",

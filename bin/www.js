@@ -11,9 +11,8 @@ import server from '../graphql/server.js'
 import Message from '../mongodb/models/Message.js'
 import * as socket from 'socket.io'
 
-console.log(process.env)
 
-var port = normalizePort(5000);
+var port = normalizePort(process.env.PORT);
 
 var httpServer = http.createServer(app)
 
