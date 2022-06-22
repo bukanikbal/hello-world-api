@@ -4,30 +4,27 @@
  * Module dependencies.
  */
 
-import mongoose from 'mongoose'
-import {app} from '../app.js'
+import {apps,connectDb} from '../app.js'
 import {Server} from 'socket.io'
 import {createServer} from 'http'
 import {graphqlServer} from '../graphql/server.js'
 import {message} from '../mongodb/models/Message.js'
 
 
-mongoose.connection.on(
-  'connected',
-  onConnected
-)
-
-mongoose.connection.on(
-  'disconnected',
-  onDisconnected
-)
-
-var httpServer = createServer(app)
+var httpServer = createServer(apps);
 
 
-httpServer.on('error',onHttpError)
-httpServer.on('listening',onListen)
-httpServer.listen(process.env.PORT)
+var messageStream = message.watch();
+
+httpServer.on('error',onServerErrr);
+httpServer.on('listening',onListen);
+
+httpServer.listen(process.env.PORT);
+
+
+messageStream.on('change',(chg) => {
+  onMessageChange(chg)
+})
 
 
 var socket = new Server(httpServer,{
@@ -38,7 +35,7 @@ var socket = new Server(httpServer,{
 
 
 
-function onHttpError(error) {
+function onServerErrr(error) {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -60,7 +57,7 @@ function onHttpError(error) {
 }
 
 async function onListen(){
-  app.set(
+  apps.set(
     'connectedDatabase',
     false
   )
@@ -78,7 +75,7 @@ async function startGraphqlServer(path){
   try{
     await graphqlServer.start()
     graphqlServer.applyMiddleware({
-      app:app,path
+      app:apps,path
     })
   }
   catch(err){
@@ -87,49 +84,6 @@ async function startGraphqlServer(path){
     )
   }
 }
-
-// connect db function
-
-async function connectDb(uri){
-  try{
-    await  mongoose.connect(
-      uri
-    )
-  }
-  catch({message}){
-    app.set('dbsErrorMessage',message);
-    setTimeout(() => connectDb(),5000);
-    console.log(`Reconnect:${message}`)
-  } 
-}
-
-// on db connect
-
-function onConnected(){
-  app.set('connectedDatabase',true)
-  console.log('connected to db server') 
-  var MessageObserver = Message.watch()
-  MessageObserver.on('change',(ch) => {
-    var uniqueId = createUniqueId(
-      ch.fullDocument.sender,
-      ch.fullDocument.receiver
-    )
-    onMessageChange(
-      uniqueId,
-      ch.fullDocument
-    )
-  })
-}
-
-// on db disconnect
-
-function onDisconnected(message){
-  app.set('connectedDatabase',false);
-  app.set('dbsErrorMessage','error');
-  console.log('disconnected with db server');
-}
-
-// on socket connected with client
 
 function onConnection(socket){
 
@@ -144,11 +98,18 @@ function onConnection(socket){
 
 }
 
-function onMessageChange(dst,docs){
-  io.to(dst).emit(
-    'message',
-    docs
-  )
+function onMessageChange(chg){
+  switch(chg.operationType){
+    case "insert": 
+      onInsert(
+        chg
+      )
+      break
+  }
+}
+
+function onInsert({__v,...doc}){
+  
 }
 
 function strXArray(param,limiter){
