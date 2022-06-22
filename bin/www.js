@@ -62,7 +62,7 @@ async function onListen(){
     false
   )
   startGraphqlServer(
-    '/'
+    '/query'
   )
   connectDb(
     process.env.URI
