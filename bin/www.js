@@ -32,6 +32,27 @@ var socket = new Server(httpServer,{
     origin : '*'
   }
 })
+.on(
+  'connect',
+  onConnected
+)
+
+function onConnected(client){
+  client.on('join',id => {
+    client.join(id)
+    console.log(id)
+  })
+}
+
+
+
+// socket.on('connect',onSocketConnect)
+
+// socket.on('connect',(client) => {
+//   client.on('join',(id) => {
+//     client.join(id)
+//   })
+// })
 
 
 
@@ -102,14 +123,15 @@ function onMessageChange(chg){
   switch(chg.operationType){
     case "insert": 
       onInsert(
-        chg
+       chg.fullDocument
       )
       break
   }
 }
 
 function onInsert({__v,...doc}){
-  
+  socket.to(doc.uniqueId)
+  .emit('message',doc)
 }
 
 function strXArray(param,limiter){

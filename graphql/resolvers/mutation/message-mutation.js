@@ -9,7 +9,7 @@ export default {
       'connectedDatabase'
   	)
   	if(conn){
-      var newer = new Message(args.param)
+      var newer = new message(args.param)
       var newMessage = await newer.save()
       
       return newMessage
