@@ -24,7 +24,7 @@ httpServer.listen(process.env.PORT);
 
 messageStream.on('change',(chg) => {
   onMessageChange(chg)
-});
+})
 
 
 var socket = new Server(httpServer,{
