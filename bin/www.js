@@ -43,7 +43,7 @@ function onConnected(client){
         _id
       )
     })
-  })
+  });
 }
 
 function onServerErrr(error) {
