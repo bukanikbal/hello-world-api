@@ -115,7 +115,7 @@ function onMessageInsert(doc){
   notifyForNewMessage(
     doc.uniqueId,
     doc
-  );
+  )
 }
 
 function onMessageUpdate(doc){
