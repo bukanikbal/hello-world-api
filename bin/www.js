@@ -130,16 +130,4 @@ function notifyForNewMessage(dst,doc){
 
 async function notifyForMessageUpdate({_id}){
   socket.emit('messageUpdate',_id)
-
-  // try{
-  //   var result = await message.findById(
-  //     _id
-  //   )
-  //   console.log(result)
-  // }
-  // catch(err){
-  //   console.log(
-  //     err
-  //   )
-  // }
 }
