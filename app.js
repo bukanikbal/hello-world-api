@@ -6,6 +6,23 @@ import express from 'express'
 import mongoose from 'mongoose'
 import createError from 'http-errors'
 import cookieParser from 'cookie-parser'
+import {message} from './mongodb/models/Message.js'
+
+
+var id = "62b44180bae076485578bc1b"
+
+var content = {
+  type:'txt',
+  value:'123'
+}
+
+var options = {
+  new: true
+}
+
+var newContent = {
+  content
+}
 
 var apps = express();
 
@@ -23,15 +40,15 @@ mongoose.connection.on(
   onDisconnected
 )
 
-function onConnected(){
+async function onConnected(){
   apps.set('connectedDatabase',true)
-  console.log('connected with db..') 
+  console.log('connected with dbs.')
 }
 
 function onDisconnected(){
   apps.set('connectedDatabase',false);
   apps.set('dbsErrorMessage','error');
-  console.log('disconncted from db.');
+  console.log('disconncted from dbs');
 }
 
 async function connectDb(uri){
@@ -50,14 +67,14 @@ async function connectDb(uri){
 
 apps.use(
   cors({
-	origin:'*'
+	  origin:'*'
   })
 )
 
 
 apps.use(
   express.urlencoded({
-	extended: false 
+	  extended: false 
   })
 );
 

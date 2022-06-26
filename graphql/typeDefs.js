@@ -28,7 +28,8 @@ export default apollo.gql`
     search(query:String) : [User]
   }
   type Mutation {
-    new(param: newMessage) : Message
+    new(param: NewMessage) : Message
+    read(param: MessageStatus) : MessageUpdate
   }
   type User{
     _id: String,
@@ -50,23 +51,45 @@ export default apollo.gql`
     receiver: String, 
     content : Content,
     uniqueId: String,
+    read: Boolean,
     send: Boolean
+  }
+  type MessageUpdate{
+    _id : String,
+    sender: String,
+    receiver: String,
+    content: Content,
+    uniqueId: String,
+    read: Boolean
   }
   type Recently{
     _id: String,
     sender: User,
     receiver: User,
-    content: Content
+    content: Content,
+    read: Boolean
   }
-  input newMessage{
+  input NewMessage{
     _id: String,
+    read: Boolean,
     sender: String,
     receiver: String,
     content: MessageContent,
     uniqueId: String
   }
+  input MessageStatus{
+    _id : String,
+    update: MessageStatusUpdate,
+    options: MessageUpdateOpts
+  }
   input MessageContent{
     type: String,
     value: String
+  }
+  input MessageStatusUpdate{
+    read: Boolean
+  }
+  input MessageUpdateOpts{
+    new: Boolean
   }
 `

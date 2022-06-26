@@ -19,5 +19,31 @@ export default {
         ctx.app.get('dbsErrorMessage')
   	  )
   	}
-  } 
+  },
+  read : async(parent,args,ctx) => {
+    var conn = ctx.app.get(
+      'connectedDatabase'
+    )
+    if(conn){
+      try{
+        var result = await message.findByIdAndUpdate(
+          args.param._id,
+          args.param.update,
+          args.param.options
+        )
+
+        return result
+      }
+      catch(err){
+        throw new apollo.ApolloError(
+          err.message
+        )
+      }
+    }
+    else{
+      throw new apollo.ApolloError(
+        ctx.app.get('dbsErrorMessage')
+      )
+    }
+  }
 }

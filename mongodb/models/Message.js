@@ -18,7 +18,8 @@ var Message = new Schema({
   },
   uniqueId : {
     type: String
-  }
+  },
+  read: Boolean
 })
 
 var message = mongoose.model(

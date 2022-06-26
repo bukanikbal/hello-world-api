@@ -4,15 +4,15 @@
  * Module dependencies.
  */
 
+
+
 import {apps,connectDb} from '../app.js'
 import {Server} from 'socket.io'
 import {createServer} from 'http'
 import {graphqlServer} from '../graphql/server.js'
 import {message} from '../mongodb/models/Message.js'
 
-
 var httpServer = createServer(apps);
-
 
 var messageStream = message.watch();
 
@@ -21,11 +21,7 @@ httpServer.on('listening',onListen);
 
 httpServer.listen(process.env.PORT);
 
-
-messageStream.on('change',(chg) => {
-  onMessageChange(chg)
-})
-
+messageStream.on('change',onMsgChg);
 
 var socket = new Server(httpServer,{
   cors : {
@@ -38,23 +34,17 @@ var socket = new Server(httpServer,{
 )
 
 function onConnected(client){
-  client.on('join',id => {
-    client.join(id)
-    console.log(id)
+  client.on('join',ids => {
+    ids.map(_id => {
+      client.join(
+        _id
+      )
+      console.log(
+        _id
+      )
+    })
   })
 }
-
-
-
-// socket.on('connect',onSocketConnect)
-
-// socket.on('connect',(client) => {
-//   client.on('join',(id) => {
-//     client.join(id)
-//   })
-// })
-
-
 
 function onServerErrr(error) {
   if (error.syscall !== 'listen') {
@@ -96,7 +86,7 @@ async function startGraphqlServer(path){
   try{
     await graphqlServer.start()
     graphqlServer.applyMiddleware({
-      app:apps,path
+      app:apps,path:'/'
     })
   }
   catch(err){
@@ -106,68 +96,50 @@ async function startGraphqlServer(path){
   }
 }
 
-function onConnection(socket){
-
-  socket.on('join',(_id) => {
-    socket.join(_id)
-    console.log(_id)
-  })
- 
-  socket.on('test',(dst) => {
-    socket.to(dst).emit('test')
-  })
-
-}
-
-function onMessageChange(chg){
+function onMsgChg(chg){
   switch(chg.operationType){
     case "insert": 
-      onInsert(
-       chg.fullDocument
+      onMessageInsert(
+        chg.fullDocument
+      ) 
+      break
+    case "update" : 
+      onMessageUpdate(
+        chg
       )
       break
   }
 }
 
-function onInsert({__v,...doc}){
-  socket.to(doc.uniqueId)
-  .emit('message',doc)
+function onMessageInsert(doc){
+  notifyForNewMessage(
+    doc.uniqueId,
+    doc
+  )
 }
 
-function strXArray(param,limiter){
-  return param.split(limiter)
+function onMessageUpdate(doc){
+  notifyForMessageUpdate(
+    doc.documentKey
+  )
 }
 
-function _idFilter(_id){
-  var number = [
-    '1','2',
-    '3','4',
-    '5','6',
-    '7','8',
-    '9','0'
-  ]
-
-  var _Id = _id.filter((c) => {
-    var [filter] = number.filter(
-      (n) => n == c
-    )
-
-    return filter
-  })
-
-  return parseInt(_Id.join(''))
+function notifyForNewMessage(dst,doc){
+  socket.to(dst).emit('message',doc)
 }
 
-function createUniqueId(_id1,_id2){
-  var _Id1 = _idFilter(strXArray(
-    _id1.toString(),""
-  ))
-  var _Id2 = _idFilter(strXArray(
-    _id2.toString(),""
-  ))
-    
-  var _id = _Id1 + _Id2
+async function notifyForMessageUpdate({_id}){
+  socket.emit('messageUpdate',_id)
 
-  return _id.toString()
+  // try{
+  //   var result = await message.findById(
+  //     _id
+  //   )
+  //   console.log(result)
+  // }
+  // catch(err){
+  //   console.log(
+  //     err
+  //   )
+  // }
 }
-
